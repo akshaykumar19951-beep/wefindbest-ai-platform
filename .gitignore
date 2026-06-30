@@ -203,6 +203,14 @@ cython_debug/
 # Temporary file for partial code execution
 tempCodeRunnerFile.py
 
+# Local generated project files
+structure.txt
+backend/wefindbest.db
+backend/.env
+backend/backend-e2e.log
+frontend/frontend-e2e.log
+frontend/frontend-dashboard.log
+
 # Ruff stuff:
 .ruff_cache/
 

@@ -1,0 +1,50 @@
+services:
+  db:
+    image: postgres:16
+    container_name: wefindbest-db
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin
+      POSTGRES_DB: wefindbest
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d wefindbest"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: ./backend
+    container_name: wefindbest-backend
+    environment:
+      DATABASE_URL: postgresql+psycopg2://admin:admin@db:5432/wefindbest
+      SECRET_KEY: ${SECRET_KEY:-change-this-local-secret}
+      CORS_ORIGINS: http://localhost:3000,http://127.0.0.1:3000
+      ENVIRONMENT: docker
+      LOG_LEVEL: INFO
+    ports:
+      - "8001:8001"
+    depends_on:
+      db:
+        condition: service_healthy
+    command: sh -c "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8001"
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        NEXT_PUBLIC_API_BASE_URL: http://localhost:8001
+    container_name: wefindbest-frontend
+    environment:
+      NEXT_PUBLIC_API_BASE_URL: http://localhost:8001
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
+volumes:
+  postgres_data:
